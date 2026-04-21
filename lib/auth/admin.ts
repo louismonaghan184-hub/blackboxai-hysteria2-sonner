@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { adminAuth } from "@/lib/firebase/admin"
+import { readSession } from "@/lib/auth/session"
 
 export type AdminPrincipal = {
   uid: string
   email: string | null
+}
+
+export async function verifyAdminCookie(): Promise<AdminPrincipal> {
+  const session = await readSession()
+  if (!session) throw unauthorized("no session")
+  if (!session.isAdmin) throw forbidden("not an admin")
+  return { uid: session.uid, email: session.email }
 }
 
 function bearerToken(req: NextRequest): string | null {
