@@ -84,31 +84,60 @@ You can swap in OpenAI, Together, Groq, or any other OpenAI-compatible API by ch
 
 ```
 app/
-  (admin)/              — authenticated admin pages
-    page.tsx            — dashboard (4-card layout, nodes health, activity feed)
+  (auth)/               — public auth pages (login)
+  admin/                — authenticated admin pages
+    page.tsx            — dashboard (overview cards, nodes health, activity feed)
     nodes/              — node inventory management
+    infrastructure/     — infrastructure management (egress, traffic routing)
     configs/            — 3-panel client config generator
-    ai/                 — Blackbox AI chat assistant
+    profiles/           — server config profiles
+    transport/          — multi-transport protocol configuration
+    payloads/           — dynamic payload generation
+    network/            — network traffic blending
+    osint/              — OSINT collection tools
+    lotl/               — living-off-the-land arsenal (kill switches, security controls)
+    forensics/          — anti-forensics rules
+    threat/             — threat intelligence & red team operations
+    analytics/          — behavioral analytics & anomaly detection
+    coordination/       — multi-operator team coordination
     agents/             — LLM agent task runner
+    ai/                 — AI chat assistant
+    mail/               — mail testing
+    reports/            — operation report generation
   api/
-    admin/              — admin CRUD + hysteria lifecycle
+    admin/              — admin CRUD, feature APIs, hysteria lifecycle
+    auth/               — JWT login, session, logout
+    dpanel/             — implant task/result endpoints
     hysteria/           — auth + traffic endpoints called by hysteria itself
     sub/hysteria2/      — public subscription endpoint (token-gated)
 components/
-  admin/                — dashboard, configs, nodes, ai, agents UIs
-  ui/                   — shadcn-style primitives (Button, Card, Sonner)
+  admin/                — dashboard, configs, nodes, ai, agents, infrastructure UIs
+  ui/                   — shadcn-style primitives (Button, Card, Badge, Sonner)
 lib/
   agents/               — LLM client, agent runner, tool registry
-  auth/                 — admin session verification
-  db/                   — Firestore schemas (Zod) + CRUD
-  hysteria/             — binary manager, config builder, client-config generator
-  net/                  — proxy-aware undici dispatcher
+  ai/                   — chat, conversations, templates, tools
+  auth/                 — JWT auth, admin session verification
+  db/                   — Firestore schemas (Zod) + CRUD helpers
+  deploy/               — SSH-based node deployment orchestrator + cloud providers
   firebase/             — admin + client SDK singletons
+  hysteria/             — binary manager, config builder, client-config generator
+  implants/             — implant generator + compilation service
+  infrastructure/       — egress manager, traffic router, domain fronting, monitoring
+  mail/                 — IMAP/POP3 client, sender, auto-test
+  net/                  — proxy-aware undici dispatcher, rotating proxy strategy
+  orchestration/        — task orchestration engine
+  redteam/              — red team planner
+  security/             — global kill switch, security controls
+  traffic/              — traffic blending profiles
+  transports/           — multi-transport adapters + fallback chains
+implant/                — Go-based implant source (beacon, tasks, transport)
+prisma/                 — Prisma schema (future database backend)
+scripts/                — setup-admin helper
 ```
 
 ## Architecture Notes
 
-- All outbound HTTP from the panel (LLM API calls, web fetches from agents) is routed through the Hysteria 2 node's SOCKS5/HTTP port using `undici.ProxyAgent`. Strategy lives at `lib/net/proxy.ts`.
+- All outbound HTTP from the panel (LLM API calls, web fetches from agents) is routed through the Hysteria 2 node's SOCKS5/HTTP port using `undici.ProxyAgent`. Strategy lives at `lib/net/strategy.ts`.
 - The panel acts as an HTTP Auth backend for Hysteria 2 (`/api/hysteria/auth`) — Hysteria calls it to validate client tokens against Firestore.
 - Firestore `onSnapshot` on the `nodes` collection powers instant status change toasts and the "live" badge on the dashboard.
 - Subscription format is base64-encoded newline-separated `hysteria2://` URIs, compatible with standard clients.

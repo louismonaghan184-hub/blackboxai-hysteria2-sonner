@@ -1,10 +1,39 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
+interface PayloadConfig {
+  id: string
+  name: string
+  type: string
+  architecture: string
+  status: string
+}
 
 export default function PayloadsPage() {
+  const [configs, setConfigs] = useState<PayloadConfig[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/payloads")
+        if (!res.ok) throw new Error("Failed to load")
+        const data = await res.json()
+        setConfigs(data.configs ?? [])
+      } catch {
+        toast.error("Failed to load payload configs")
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
@@ -26,30 +55,28 @@ export default function PayloadsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Windows Executable", type: "EXE", status: "Ready", size: "2.4 MB" },
-                { name: "Linux ELF", type: "ELF", status: "Ready", size: "1.8 MB" },
-                { name: "macOS Bundle", type: "APP", status: "Building", size: "3.1 MB" },
-                { name: "PowerShell Script", type: "PS1", status: "Ready", size: "12 KB" },
-                { name: "Python Payload", type: "PY", status: "Ready", size: "8 KB" }
-              ].map((payload, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{payload.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Type: {payload.type} • Size: {payload.size}
-                    </p>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : configs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No payload configs yet. Generate one to get started.</p>
+            ) : (
+              <div className="space-y-4">
+                {configs.map((config) => (
+                  <div key={config.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{config.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Type: {config.type} | Arch: {config.architecture}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default">{config.status ?? "ready"}</Badge>
+                      <Button size="sm" variant="outline">Download</Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={payload.status === "Ready" ? "default" : "secondary"}>
-                      {payload.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">Download</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -6,17 +6,22 @@ import { cn } from "@/lib/utils"
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/nodes", label: "Infrastructure" },
+  { href: "/admin/nodes", label: "Nodes" },
+  { href: "/admin/infrastructure", label: "Infrastructure" },
+  { href: "/admin/configs", label: "Configs" },
+  { href: "/admin/profiles", label: "Profiles" },
   { href: "/admin/transport", label: "Protocols" },
   { href: "/admin/payloads", label: "Payloads" },
-  { href: "/admin/osint", label: "OSINT" },
   { href: "/admin/network", label: "Network" },
+  { href: "/admin/osint", label: "OSINT" },
   { href: "/admin/lotl", label: "LotL Arsenal" },
   { href: "/admin/forensics", label: "Anti-Forensics" },
   { href: "/admin/threat", label: "Threat Intel" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/coordination", label: "Team Ops" },
-  { href: "/admin/mail", label: "Mail Test" },
+  { href: "/admin/agents", label: "Agents" },
+  { href: "/admin/ai", label: "AI Chat" },
+  { href: "/admin/mail", label: "Mail" },
   { href: "/admin/reports", label: "Reports" },
 ]
 
