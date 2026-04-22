@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin"
-import { TransportAdapterManager, TransportAdapterFactory } from "@/lib/transports/adapters"
-import { MultiTransportFallback } from "@/lib/transports/fallback"
-import type { ProtocolType } from "@/lib/transports/adapters"
+import { TransportAdapterManager } from "@/lib/transports/adapters"
 
 let adapterManager: TransportAdapterManager | null = null
 
