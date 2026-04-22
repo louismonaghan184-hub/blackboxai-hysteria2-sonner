@@ -1,10 +1,39 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
+interface CoordinationOp {
+  id: string
+  name: string
+  strategy: string
+  status: string
+  taskCount: number
+}
 
 export default function CoordinationPage() {
+  const [operations, setOperations] = useState<CoordinationOp[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/coordination")
+        if (!res.ok) throw new Error("Failed to load")
+        const data = await res.json()
+        setOperations(data.operations ?? [])
+      } catch {
+        toast.error("Failed to load coordination data")
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
@@ -26,30 +55,30 @@ export default function CoordinationPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Phishing Assessment", status: "Active", team: "3 operators", progress: "67%" },
-                { name: "Network Penetration", status: "Planning", team: "2 operators", progress: "15%" },
-                { name: "Social Engineering", status: "Completed", team: "1 operator", progress: "100%" },
-                { name: "Physical Security", status: "Scheduled", team: "2 operators", progress: "0%" },
-                { name: "Red Team Exercise", status: "Active", team: "4 operators", progress: "45%" }
-              ].map((operation, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{operation.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Team: {operation.team} • Progress: {operation.progress}
-                    </p>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : operations.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active operations. Create one to get started.</p>
+            ) : (
+              <div className="space-y-4">
+                {operations.map((op) => (
+                  <div key={op.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{op.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Strategy: {op.strategy} | Tasks: {op.taskCount}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={op.status === "running" ? "default" : "secondary"}>
+                        {op.status}
+                      </Badge>
+                      <Button size="sm" variant="outline">Manage</Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={operation.status === "Active" ? "default" : operation.status === "Completed" ? "default" : "secondary"}>
-                      {operation.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">View Details</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

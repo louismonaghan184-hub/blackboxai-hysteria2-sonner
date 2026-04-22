@@ -1,16 +1,45 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
+interface OsintResult {
+  id: string
+  source: string
+  query: string
+  status: string
+  resultCount: number
+}
 
-export default function OSINTPage() {
+export default function OsintPage() {
+  const [results, setResults] = useState<OsintResult[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/osint")
+        if (!res.ok) throw new Error("Failed to load")
+        const data = await res.json()
+        setResults(data.results ?? [])
+      } catch {
+        toast.error("Failed to load OSINT data")
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold">OSINT Integration</h1>
+        <h1 className="text-xl font-bold">OSINT Collection</h1>
         <p className="text-sm text-muted-foreground">
-          Automated Open Source Intelligence gathering and analysis tools.
+          Open source intelligence gathering and analysis tools.
         </p>
       </div>
 
@@ -19,37 +48,37 @@ export default function OSINTPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Active OSINT Modules</CardTitle>
-                <CardDescription>Configure and manage intelligence gathering sources</CardDescription>
+                <CardTitle>OSINT Queries</CardTitle>
+                <CardDescription>Manage intelligence collection queries and results</CardDescription>
               </div>
-              <Button>New OSINT Task</Button>
+              <Button>New Query</Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Domain Enumeration", status: "Active", lastRun: "2 hours ago", results: "245 domains" },
-                { name: "Social Media Analysis", status: "Active", lastRun: "1 hour ago", results: "89 profiles" },
-                { name: "Network Reconnaissance", status: "Running", lastRun: "15 min ago", results: "1,247 hosts" },
-                { name: "Email Harvesting", status: "Inactive", lastRun: "1 day ago", results: "567 emails" },
-                { name: "Dark Web Monitoring", status: "Active", lastRun: "30 min ago", results: "12 mentions" }
-              ].map((module, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{module.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Last run: {module.lastRun} • Results: {module.results}
-                    </p>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : results.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No OSINT queries yet. Start a new query to begin collection.</p>
+            ) : (
+              <div className="space-y-4">
+                {results.map((result) => (
+                  <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{result.source}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Query: {result.query} | Results: {result.resultCount}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={result.status === "completed" ? "default" : "secondary"}>
+                        {result.status}
+                      </Badge>
+                      <Button size="sm" variant="outline">View</Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={module.status === "Active" ? "default" : module.status === "Running" ? "default" : "secondary"}>
-                      {module.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">View Results</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,16 +1,45 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
+interface ThreatOperation {
+  id: string
+  name: string
+  type: string
+  status: string
+  priority: string
+}
 
 export default function ThreatPage() {
+  const [operations, setOperations] = useState<ThreatOperation[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/threat")
+        if (!res.ok) throw new Error("Failed to load")
+        const data = await res.json()
+        setOperations(data.operations ?? [])
+      } catch {
+        toast.error("Failed to load threat intel")
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold">Threat Intelligence Feeds</h1>
+        <h1 className="text-xl font-bold">Threat Intelligence</h1>
         <p className="text-sm text-muted-foreground">
-          Integrated threat intelligence feeds and IOC management system.
+          Track threat intelligence feeds, indicators of compromise, and red team operations.
         </p>
       </div>
 
@@ -19,37 +48,37 @@ export default function ThreatPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Intelligence Feeds</CardTitle>
-                <CardDescription>Manage threat intelligence sources and indicators</CardDescription>
+                <CardTitle>Operations</CardTitle>
+                <CardDescription>Active red team operations and assessments</CardDescription>
               </div>
-              <Button>Add Feed</Button>
+              <Button>New Operation</Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Malware Bazaar", status: "Active", lastUpdate: "5 min ago", indicators: "1,247" },
-                { name: "VirusTotal", status: "Active", lastUpdate: "2 min ago", indicators: "3,456" },
-                { name: "Abuse.ch", status: "Active", lastUpdate: "10 min ago", indicators: "892" },
-                { name: "PhishTank", status: "Inactive", lastUpdate: "1 hour ago", indicators: "567" },
-                { name: "Custom Feed", status: "Active", lastUpdate: "15 min ago", indicators: "234" }
-              ].map((feed, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{feed.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Last update: {feed.lastUpdate} • Indicators: {feed.indicators}
-                    </p>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : operations.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No operations yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {operations.map((op) => (
+                  <div key={op.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{op.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Type: {op.type} | Priority: {op.priority}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={op.status === "running" ? "default" : "secondary"}>
+                        {op.status}
+                      </Badge>
+                      <Button size="sm" variant="outline">View</Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={feed.status === "Active" ? "default" : "secondary"}>
-                      {feed.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">View Feed</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
